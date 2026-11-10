@@ -1,57 +1,88 @@
-# Dados e dicionário — ALERTASP / INMET A701 + GeoSampa
+# Dados utilizados — GeoSampa e INMET A701
 
-## 1. Procedência e download
+Esta pasta reúne os dados públicos utilizados no experimento de Machine Learning do ALERTASP e documenta sua origem, cobertura, formato, tratamento e limitações. **Não foram utilizados dados sintéticos no treinamento ou na avaliação.**
 
-**GeoSampa/Defesa Civil/SIGRC:** dados oficiais `SIRGAS_GPKG_riscoocorrencia.zip` com 14 GeoPackages anuais 2013–2026, recorte de `ALAGAMENTO` e `INUNDACAO`. Fontes [Alagamento](https://metadados.geosampa.prefeitura.sp.gov.br/geonetwork/srv/api/records/432c06b1-03a1-4b1f-9210-423e1b58e869) e [Inundação](https://metadados.geosampa.prefeitura.sp.gov.br/geonetwork/srv/api/records/9d08d20d-f6c7-463d-a349-c28c47babff2). Referência de atualização dos metadados: **06/10/2026**, publicação mensal via ETL sem sincronismo. **Licença:** [Creative Commons BY-SA 4.0 dos dados do GeoSampa](https://prefeitura.sp.gov.br/web/licenciamento/w/licen%C3%A7a-para-uso-de-dados-do-geosampa); atribuição da Prefeitura obrigatória, compartilhamento nos mesmos termos quando cabível.
+## Fontes e condições de uso
 
-**INMET:** dados horários brutos estação automática **A701 / São Paulo–Mirante**, 14 CSVs de 2013 a 2026 (último até **31/10/2026**), [download oficial](https://portal.inmet.gov.br/dadoshistoricos), WMO A701, localização conforme arquivo: latitude -23,48333333°, longitude -46,61666666°. CSV com 8 linhas de metadados, separador `;`, codificação Latin-1 e número decimal com vírgula. **Unidade de precipitação: mm medidos em intervalo horário**; horas indicadas em UTC. `-9999` e células vazias indicam ausência, não chuva zero. [Nota oficial do INMET](https://portal.inmet.gov.br/noticias/saiba-como-acessar-os-dados-meteorol%25C3%25B3gicos-dispon%25C3%25ADveis-no-site-do-inmet) sobre falhas e dados não validados. **Condições de reutilização INMET:** a documentação pública consultada não fornece licença Creative Commons específica para esses CSVs; mantenha atribuição e confira os termos da fonte caso redistribua.
+### GeoSampa / Defesa Civil / SIGRC
 
-**Coleta:** arquivos oficiais obtidos e fornecidos pela equipe durante a GS. O [manifesto SHA-256](../evidencias/chuva_a701/manifesto_sha256.csv) permite verificar se o arquivo usado é o mesmo. Não acrescentamos registros sintéticos.
+- **Órgão:** Prefeitura do Município de São Paulo / Coordenadoria Municipal de Defesa Civil.
+- **Conjunto:** série histórica de ocorrências de alagamento e inundação extraídas do SIGRC; pacote `SIRGAS_GPKG_riscoocorrencia.zip`, com 14 arquivos GeoPackage anuais (2013–2026).
+- **Período:** 2013–2026, com 2026 parcial. Os metadados de referência foram revisados em 06/10/2026.
+- **Atualização:** mensal, por ETL sem sincronismo; os registros não constituem monitoramento em tempo real.
+- **Links oficiais:** [Alagamento](https://metadados.geosampa.prefeitura.sp.gov.br/geonetwork/srv/api/records/432c06b1-03a1-4b1f-9210-423e1b58e869) e [Inundação](https://metadados.geosampa.prefeitura.sp.gov.br/geonetwork/srv/api/records/9d08d20d-f6c7-463d-a349-c28c47babff2).
+- **Condições de uso:** [CC BY-SA 4.0 para dados geoespaciais GeoSampa](https://prefeitura.sp.gov.br/web/licenciamento/w/licen%C3%A7a-para-uso-de-dados-do-geosampa); manter atribuição e observar as condições de compartilhamento da fonte.
 
-## 2. Cobertura e unidade de análise
+### INMET — estação A701 São Paulo–Mirante
 
-- Observação bruta INMET: **uma estação × hora UTC**. Dados convertidos para dia civil **`America/Sao_Paulo`** com horário de verão histórico.
-- Observação bruta GeoSampa: **uma ocorrência SIGRC com data/categoria**; eventos repetidos no mesmo dia contam como um único **dia com registro** para o alvo municipal.
-- Observação de treinamento: **município inteiro × dia civil** (00h–23h59). O indicador `1` significa **ao menos um registro** de alagamento ou inundação no dia; `0` significa **não consta registro** na base, e não afirma ausência de alagamento físico.
-- **Treinamento/calibração/teste:** anos completos até 2025, com filtros de qualidade da precipitação; **2026 apenas parcial até 30/09**, por revisão de 06/10 do GeoSampa. Último registro observado em 28/09; isso não garante completude dos dados administrativos.
-- **Dados originais analisados:** 12.625 registros das duas categorias em 14 GPKGs; 1.382 dias distintos com registro de 2013 a 2025. Após filtragem meteorológica, 3.585 dias de desenvolvimento, 268 de calibração, 354 de verificação, 327 de teste retrospectivo e 231 de 2026 parcial.
+- **Órgão:** Instituto Nacional de Meteorologia (INMET).
+- **Conjunto:** 14 arquivos CSV anuais com medições de estação automática, de 2013 a 2026 (o CSV de 2026 cobre até 31/10/2026).
+- **Referência espacial:** estação São Paulo–Mirante (código A701). Os metadados de localização variam ligeiramente ao longo da série e são auditados no notebook.
+- **Variável utilizada:** precipitação total em intervalo horário, expressa em **milímetros (mm)**; não é uma leitura de chuva específica de cada bairro.
+- **Horário e formato:** medições em UTC; arquivos com cabeçalhos de metadados, separador `;` e decimal com vírgula. Datas e nomes de colunas variam entre anos.
+- **Download:** [INMET — dados históricos](https://portal.inmet.gov.br/dadoshistoricos).
+- **Condições de uso:** manter a identificação do INMET e conferir as condições publicadas pelo órgão antes de redistribuições adicionais; não atribuímos aos CSVs uma licença específica não identificada.
 
-## 3. Campos brutos de entrada
+Os arquivos originais devem permanecer sem edição em `brutos/`. O [manifesto de hashes SHA-256](../evidencias/chuva_a701/manifesto_sha256.csv) registra os arquivos efetivamente utilizados.
 
-| Origem | Campo | Unidade | Descrição |
+## Organização dos arquivos
+
+```text
+dados/
+├── README.md
+├── brutos/
+│   ├── SIRGAS_GPKG_riscoocorrencia.zip
+│   └── inmet/A701_MIRANTE/
+│       └── 14 CSVs originais (2013–2026)
+└── processados/chuva_a701/
+    └── painel_diario_a701_auditoria.csv
+```
+
+## Unidade de análise e variável-alvo
+
+Uma observação corresponde a **um dia civil no município de São Paulo**. A variável `houve_registro` é igual a 1 quando há ao menos um registro das categorias `ALAGAMENTO` ou `INUNDACAO` na base SIGRC naquele dia; é igual a 0 quando **não consta** registro dessas categorias. Vários registros no mesmo dia são consolidados no indicador diário municipal.
+
+Essa definição não permite afirmar que dias com valor 0 foram dias sem alagamentos físicos: pode haver subnotificação, atraso ou diferenças de cobertura da administração pública.
+
+## Dicionário dos principais campos
+
+| Campo | Origem | Unidade | Significado |
 |---|---|---|---|
-| GeoSampa | `data` | dia | Dia indicado no registro administrativo |
-| GeoSampa | `ocorrencia` | categoria | `ALAGAMENTO` ou `INUNDACAO`; demais categorias ignoradas |
-| INMET | `DATA ...` | data UTC | Campo com layout variando ao longo dos anos |
-| INMET | `HORA (UTC)` / variante | hora UTC | Hora da medição, antes da conversão para fuso local |
-| INMET | `PRECIPITAÇÃO TOTAL, HORÁRIO (mm)` | mm | Chuva observada na estação em intervalo horário |
-| INMET | Latitude/Longitude do cabeçalho | graus | Coordenadas fixas da estação, não da ocorrência |
+| `data` | GeoSampa | Data | Dia associado ao registro administrativo |
+| `ocorrencia` | GeoSampa | Categoria | `ALAGAMENTO` ou `INUNDACAO`; outras categorias não compõem o alvo |
+| `HORA (UTC)` e variantes | INMET | Hora UTC | Horário de observação, convertido para `America/Sao_Paulo` |
+| `PRECIPITAÇÃO TOTAL, HORÁRIO (mm)` e variantes | INMET | mm/intervalo de 1 h | Chuva registrada pela estação A701 |
+| `houve_registro` | Derivado | 0/1 | Pelo menos um registro em São Paulo no dia |
+| `chuva_d1_mm` | Derivado | mm | Chuva **do dia anterior**, exigindo cobertura horária completa |
+| `chuva_d3_mm`, `chuva_d7_mm` | Derivado | mm observados | Acumulados dos 3/7 dias anteriores; podem ser parciais quando há falhas |
+| `maior_chuva_hora_d1_mm` | Derivado | mm em 1 h | Maior medição horária do dia anterior |
+| `horas_chuvosas_d1` | Derivado | h | Quantidade de horas com chuva no dia anterior |
+| `cobertura_d3`, `cobertura_d7` | Derivado | Fração | Proporção de dias completos disponíveis nas janelas anteriores |
+| `mes_sin`, `mes_cos` | Derivado | Adimensional | Sazonalidade conhecida no início do dia |
 
-## 4. Campos calculados e preparação
+## Critérios de limpeza e cobertura
 
-| Feature | Unidade | Critério e disponibilidade |
-|---|---|---|
-| `houve_registro` | 0 ou 1 | Alvo na data local; ausência de registro não significa ausência física |
-| `chuva_dia_mm` | mm | Chuva do dia corrente, **apenas para preparar os atributos futuros**; nunca entra no modelo do mesmo dia |
-| `chuva_d1_mm` | mm | Soma do dia anterior **somente quando todas as horas locais esperadas foram medidas** |
-| `chuva_d3_mm` | mm observados | Soma de dias completos entre os três dias anteriores; exige ao menos 2/3 válidos; pode subestimar total real |
-| `chuva_d7_mm` | mm observados | Soma de dias completos entre os sete dias anteriores; exige ao menos 5/7 válidos; pode subestimar total real |
-| `maior_chuva_hora_d1_mm` | mm/h (intervalo 1h) | Pico da hora no dia anterior com cobertura completa |
-| `horas_chuvosas_d1` | h | Horas com chuva positiva no dia anterior, com cobertura completa |
-| `cobertura_d3`, `cobertura_d7` | fração | Fração de dias completos disponíveis nas janelas anteriores; acompanha as somas com dados ausentes |
-| `mes_sin`, `mes_cos` | -1 a 1 | Sazonalidade circular conhecida no começo do dia |
-| `janela_valida` | bool | Todas as features possuem medidas válidas e critérios de cobertura atendidos |
+- Datas e horários são convertidos de UTC para o dia civil `America/Sao_Paulo`, considerando as transições históricas do horário de verão.
+- Valores `-9999`, vazios e leituras inválidas representam ausência de dados; **não são convertidos em zero mm**.
+- Para `chuva_d1_mm`, somente são usados dias anteriores com todas as horas locais esperadas e válidas.
+- As janelas de 3 e 7 dias exigem pelo menos **2 de 3** e **5 de 7** dias válidos, respectivamente. As somas representam **chuva observada**, não uma extrapolação para os dias faltantes; a cobertura é incluída como variável separada.
+- Chuva observada no dia que se pretende estimar **não entra nas features**. Apenas medições anteriores são utilizadas.
+- Dias com features indisponíveis são removidos da modelagem. Esse filtro pode alterar a representatividade temporal dos dados.
 
-**Sem vazamento:** chuva sempre deslocada um dia (ou mais), sem usar chuva do dia previsto, rótulos futuros ou dados do teste para selecionar hiperparâmetros. A seleção usa apenas os quatro folds 2013–2022; calibração só 2023; 2024 é diagnóstico, 2025 teste retrospectivo e 2026 avaliação parcial. O relatório não permite atribuir risco a um bairro.
+## Cobertura da modelagem
 
-## 5. Qualidade, viés e limitações
+| Conjunto | Período | Dias elegíveis |
+|---|---|---:|
+| Desenvolvimento / CV | 2013–2022 | 3.585 |
+| Calibração | 2023 | 268 |
+| Verificação | 2024 | 354 |
+| Teste retrospectivo | 2025 | 327 |
+| Complementar, parcial | 2026 | 231 |
 
-- Dias com chuva horária insuficiente são descartados da modelagem. Não imputamos NaN como 0; as janelas 3/7 dias usam somas observadas e frações de cobertura. Esses filtros alteram a composição das amostras (viés de seleção).
-- A menor cobertura anual de features entre anos completos foi **73%** (ver arquivo [cobertura_meteorologica_por_ano.csv](../evidencias/chuva_a701/cobertura_meteorologica_por_ano.csv)); 2023 e 2025 têm ausências relevantes. A estação única também não cobre temporalmente e espacialmente toda a cidade.
-- GeoSampa é atualização mensal/ETL sem sincronismo. Os registros podem sofrer subnotificação e diferenças de cobertura administrativa ao longo do tempo; não há referência completa de dias negativos.
-- As proporções por faixas de precipitação são **frequências administrativas observadas**, não limites oficiais de alerta ou probabilidades físicas por rua.
-- As análises são retrospectivas, com períodos específicos; generalização além da base depende de novos dados e avaliação.
+A avaliação complementar de 2026 limita-se a datas com cobertura e registros considerados elegíveis no experimento; a série de ocorrências administrativa não é necessariamente completa após a data da atualização de referência. A cobertura meteorológica por ano está em [cobertura_meteorologica_por_ano.csv](../evidencias/chuva_a701/cobertura_meteorologica_por_ano.csv).
 
-## 6. Rastreabilidade e reprodutibilidade
+## Limitações
 
-Veja [README da disciplina](../README.md), `requirements.txt`, `evidencias/chuva_a701/versoes_execucao.json`, `evidencias/chuva_a701/manifesto_sha256.csv`, `evidencias/chuva_a701/gridsearch_12_combinacoes.csv`. Os nomes originais de todos os CSVs foram mantidos. A pasta `extras/massa_d_agua.geojson` foi fornecida no contexto da GS, mas **não faz parte do modelo A701 municipal**.
+O INMET A701 é uma estação pontual, insuficiente para representar a precipitação em toda a cidade. Os registros SIGRC podem apresentar subnotificação e viés de cobertura. A associação entre chuva do dia anterior e frequência de registros é retrospectiva e **não define limites oficiais, risco por rua ou probabilidades operacionais confiáveis**.
+
+Consulte a [metodologia completa](../README.md), o [relatório](../RELATORIO_ML.md) e os [resultados auditáveis](../evidencias/chuva_a701/).
