@@ -1,22 +1,31 @@
-# Uso responsável de IA como copiloto — ALERTASP
+# Uso de IA no desenvolvimento do ALERTASP
 
-Este arquivo registra o emprego de assistentes de IA durante a GS. Não são apresentadas instruções fabricadas nem números de experimento sintéticos.
+A equipe utilizou assistentes de IA como apoio para planejamento técnico, exploração dos dados, revisão de código e interpretação dos resultados. Os arquivos oficiais vieram do GeoSampa e do INMET, e as métricas apresentadas foram obtidas com a execução do notebook sobre dados reais.
 
-## Solicitações reais feitas pela equipe (trechos da conversa)
+## Exemplos de solicitações efetivamente realizadas
 
-- **Planejamento da rubrica:** “Atue como cientista de dados/engenheiro de ML e orientador acadêmico… cumprir integralmente a rubrica da FIAP.” Foi solicitado usar o PDF oficial, dados reais públicos e separar treino/teste corretamente.
-- **Revisão do objetivo do produto:** “Com base na chuva observada até o início de um dia e nas características históricas de determinada região de São Paulo, qual é a probabilidade estimada de haver pelo menos um registro de alagamento ou inundação nessa região durante as próximas 24 horas?”
-- **Restrições da coleta:** “Vamos fazer so da capital… te mandei o de 2013 de sao paulo… me mande o drive inteiro…” O escopo foi limitado à cidade e à estação INMET A701 São Paulo–Mirante.
-- **Pedido de implementação final:** “vou te mandar tudo oq temos e me mande o modelo completo e pronto para entrega seguindo tudo que ja combinamos”.
+> “Atue como cientista de dados/engenheiro de ML e orientador acadêmico. Ensine de forma didática e rigorosa, pois o objetivo é cumprir integralmente a rubrica da FIAP.”
 
-## Trabalho humano e revisão
+**Finalidade:** organizar a pergunta de pesquisa, a leitura dos dados, a separação treino/teste e a validação cruzada conforme a disciplina.
 
-A equipe obteve os CSVs originais de 2013–2026 e a série histórica GeoSampa, definiu o problema CitizenTech, executou discussões sobre a utilidade ao cidadão e revisou outputs. A IA auxiliou com exploração de dados, scripts, documentação, validação e formulação das limitações. **As métricas do notebook foram realmente calculadas a partir dos arquivos fornecidos**; os resultados não foram inventados. Conferir e entender código, fontes, arquivos e conclusões antes da submissão.
+> “Com base na chuva observada até o início de um dia e nas características históricas de determinada região de São Paulo, qual é a probabilidade estimada de haver pelo menos um registro de alagamento ou inundação nessa região durante as próximas 24 horas?”
 
-## Decisões corretivas documentadas
+**Finalidade:** reformular a pergunta inicial de classificação histórica para estimativa de registro futuro; o escopo foi posteriormente delimitado ao município inteiro.
 
-- Separação da pergunta de classificação de tipo (experimento anterior) e previsão de **registro municipal** (experimento desta entrega).
-- Conversão UTC para dia local e prevenção de vazamento por uso de chuva apenas anterior ao dia previsto.
-- Ausências meteorológicas mantidas como desconhecidas; janelas 3/7 dias calculadas apenas com cobertura mínima, acompanhadas de frações de cobertura.
-- Separação temporal desenvolvimento 2013–2022, calibração 2023, verificação 2024, avaliação retrospectiva 2025, suplementar 2026.
-- Conclusão restrita: o RF teve AP maior que baseline mensal em 2025, mas calibração Brier pior; **não se apresenta a porcentagem como risco operacional de alagamento**.
+> “Vamos fazer só da capital [...] ”
+
+**Finalidade:** delimitar as fontes ao INMET A701 e às ocorrências GeoSampa de São Paulo, e estruturar um notebook reproduzível.
+
+> “Analise tudo que foi proposto a nossa ideia, tudo o que já construímos [...] vamos pelo 10.”
+
+**Finalidade:** realizar revisão da documentação e checagem de requisitos acadêmicos.
+
+## Decisões técnicas revisadas
+
+- **Sem dados sintéticos:** somente observações meteorológicas e registros públicos reais no experimento.
+- **Disponibilidade temporal:** chuva usada como entrada sempre é anterior ao dia-alvo; UTC é convertido para o horário local.
+- **Qualidade:** ausência meteorológica não é tratada como precipitação zero; os critérios de cobertura ficam documentados.
+- **Validação:** desenvolvimento (2013–2022), calibração separada (2023), verificação (2024) e avaliação retrospectiva (2025), além de 2026 parcial.
+- **Interpretação:** o Random Forest teve AP maior que o baseline sazonal em 2025, mas Brier Score pior; suas porcentagens não são apresentadas como alertas operacionais.
+
+O uso de IA não substitui a conferência das fontes, a revisão do código nem a responsabilidade da equipe pela explicação das decisões e resultados.
