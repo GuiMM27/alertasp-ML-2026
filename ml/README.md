@@ -1,73 +1,98 @@
-# ALERTASP — IA & Machine Learning | Modelo de registro municipal condicionado à chuva
+# ALERTASP · Inteligência Artificial & Machine Learning
 
-**Equipe:** Enzo Almeida (RM556900), Guilherme Moreira (RM557290), Gabriel De Mello (RM554421)  
-**FIAP GS CitizenTech 2026.2 — Entrega de IA & ML**
+**Estimativa retrospectiva de registros municipais de alagamento e inundação a partir da precipitação observada.**
 
-## Pergunta que o notebook responde
+Este módulo investiga a pergunta:
 
-> Dadas as observações de precipitação na estação INMET A701 **até 00h de um dia**, qual a estimativa de **ao menos um registro** de alagamento ou inundação da Defesa Civil **em algum ponto da cidade de São Paulo** nesse dia?
+> A chuva medida na estação INMET A701 até o início de um dia ajuda a estimar a possibilidade de haver **pelo menos um registro administrativo** de alagamento ou inundação em algum ponto do município de São Paulo nas próximas 24 horas?
 
-**Diferença essencial:** os dados não permitem concluir risco de uma rua, bairro, trajeto ou previsão da intensidade física dos alagamentos. `y=0` significa **sem registro publicado** nesse dia — não “não aconteceu”. A interface de alertas do ALERTASP é um projeto separado.
+A unidade de análise é **São Paulo (município) × dia civil**. O alvo `houve_registro` vale 1 se existe um registro no GeoSampa naquele dia e 0 se **não consta registro**. Isso não equivale à ocorrência física real de alagamento, nem permite estimar risco por bairro ou via.
 
-## Fontes oficiais / período
+## Dados e preparação
 
-- **GeoSampa/Defesa Civil/SIGRC:** 14 GPKGs, 2013–2026 (2026 parcial), 12.625 registros das classes `ALAGAMENTO` e `INUNDACAO`. [Alagamento](https://metadados.geosampa.prefeitura.sp.gov.br/geonetwork/srv/api/records/432c06b1-03a1-4b1f-9210-423e1b58e869) · [Inundação](https://metadados.geosampa.prefeitura.sp.gov.br/geonetwork/srv/api/records/9d08d20d-f6c7-463d-a349-c28c47babff2). Atualização mensal / ETL sem sincronismo; histórico **não** é tempo real. Prefeitura indica [CC BY-SA 4.0 para dados geoespaciais do GeoSampa](https://prefeitura.sp.gov.br/web/licenciamento/w/licen%C3%A7a-para-uso-de-dados-do-geosampa).
-- **INMET:** 14 CSVs originais de precipitação horária na estação **A701 São Paulo–Mirante**, 2013–2026 (2026 até 31/10), extraídos do [portal](https://portal.inmet.gov.br/dadoshistoricos). Unidade de chuva: mm por hora; UTC convertido para horário de São Paulo, respeitando horário de verão histórico. Dados brutos com possíveis falhas; [orientação INMET](https://portal.inmet.gov.br/noticias/saiba-como-acessar-os-dados-meteorol%25C3%25B3gicos-dispon%25C3%25ADveis-no-site-do-inmet).
-
-Detalhamento, dicionário, SHA-256 e limitações no [dados/README.md](dados/README.md) e [evidencias/chuva_a701/manifesto_sha256.csv](evidencias/chuva_a701/manifesto_sha256.csv).
-
-## Arquivos da entrega
-
-- `01_ALERTASP_PREVISAO_CHUVA_A701.ipynb`: notebook executado, incluindo tabelas, gráficos e conclusão final.
-- `RELATORIO_ML.md`: relatório compacto com problema, método, avaliação e cidadania. `RELATORIO_ML_2_PAGINAS.pdf`: visualização complementar.
-- `requirements.txt`: versões Python utilizadas na execução local. Notebook possui célula de instalação compatível com Colab.
-- `dados/README.md`: inventário, condições de uso, unidades, política de ausências e dicionário.
-- `evidencias/chuva_a701/`: GridSearchCV, métricas, partições, versões e hashes, artefato experimental `.joblib`.
-- `figuras/chuva_a701/`: comparação treino/teste, matrizes, curvas de calibração e precisão-revocação.
-- `prompts.md`: documentação da IA como copiloto e revisões, sem atribuir resultados inventados.
-
-## Executar no Google Colab (reprodutível)
-
-1. Faça upload deste repositório ou do pacote ZIP para `Meu Drive/ALERTASP_GS_2026/` preservando **a pasta `ml/`**.
-2. Confira os 14 CSVs no caminho `ml/dados/brutos/inmet/A701_MIRANTE/`, e um ZIP `SIRGAS_GPKG_riscoocorrencia.zip` em `ml/dados/brutos/`.
-3. Abra `ml/01_ALERTASP_PREVISAO_CHUVA_A701.ipynb` no [Google Colab](https://colab.research.google.com/) e execute **Ambiente de execução → Executar tudo**, com CPU. Autorize o Drive.
-4. O notebook valida o código A701, as horas, os anos, a integridade dos dados, gera o painel e os folds de desenvolvimento. Executa 12 combinações × 4 folds, calibra em 2023 e avalia 2024/2025/2026.
-5. Compare as métricas com as tabelas e CSVs distribuídos. O notebook salva novos CSVs e gráficos no Drive e regenera `RELATORIO_ML.md`; **se você editou o relatório manualmente, guarde backup antes de reexecutar**.
-6. Preserve os outputs do `.ipynb` quando enviar ao GitHub, confira a visualização na página do arquivo e submeta o link junto ao vídeo não listado de até cinco minutos no Teams.
-
-**Executar localmente:** instale `pip install -r ml/requirements.txt` e use `ALERTASP_BASE_DIR=/caminho/para/ALERTASP_GS_2026/ml` ao executar o notebook com Jupyter. Os artefatos são experimentais, não de produção.
-
-## Metodologia sem vazamento
-
-| Etapa | Período | Uso |
+| Fonte | Cobertura utilizada | Papel no experimento |
 |---|---|---|
-| Desenvolvimento | 2013–2022 | Treino + 4 folds temporais; Grade: 12 combinações de 3 hiperparâmetros |
-| Calibração | 2023 | Sigmoide sobre escores, sem treinar novamente o RF |
-| Verificação | 2024 | Diagnóstico sem reajustar hiperparâmetros |
-| Teste retrospectivo | 2025 | Avaliação fora do desenvolvimento (já observada durante o projeto) |
-| Complementar parcial | 01–09/2026 | Avaliação exploratória, registros com atualização mensal |
+| [GeoSampa / Defesa Civil / SIGRC](https://metadados.geosampa.prefeitura.sp.gov.br/geonetwork/srv/api/records/432c06b1-03a1-4b1f-9210-423e1b58e869) | 2013–2026 (2026 parcial) | Datas e categorias `ALAGAMENTO` e `INUNDACAO` |
+| [INMET — históricos](https://portal.inmet.gov.br/dadoshistoricos) | 2013–2026 (último CSV até 31/10/2026) | Precipitação horária da estação A701, São Paulo–Mirante |
 
-As features incluem apenas chuva do **dia anterior** e somas observadas de 3/7 dias anteriores, suas coberturas, pico horário anterior, horas com chuva e mês cíclico. Não se usa chuva do dia-alvo. Ausências nunca são convertidas em zero.
+Os horários UTC do INMET são convertidos para `America/Sao_Paulo`, incluindo as mudanças históricas de horário de verão. Entram no modelo somente chuva **anterior ao dia-alvo** (1, 3 e 7 dias), pico horário e horas chuvosas do dia anterior, cobertura das janelas e codificação cíclica do mês. Medições ausentes não são tratadas como chuva zero; a amostra é filtrada de acordo com a cobertura disponível.
 
-## Resultado — estudo executado
+O inventário, as unidades, as regras de limpeza, as condições de reutilização e o manifesto de integridade estão descritos em [dados/README.md](dados/README.md).
 
-- **Random Forest escolhido:** `n_estimators=300`, `max_depth=4`, `min_samples_leaf=20`. Média de **Average Precision na CV = 0,6079**.
-- **2025, 327 dias elegíveis:** RF calibrado AP **0.6221**, Brier **0.1418**, F1-macro **0.6681**. Baseline sazonal mensal AP **0.5682**, Brier **0.1387**, F1-macro **0.7312**.
-- **2026 parcial, 231 dias:** RF calibrado AP **0.6947**, Brier **0.1827** e F1-macro **0.7019**.
+## Método
 
-A ordenação relativa de dias foi melhor que a do baseline mensal em 2025 (AP), mas **a qualidade probabilística do modelo calibrado não superou a referência sazonal em Brier**. Portanto, **não** apresentamos suas porcentagens como risco operacional nem risco de rua. Na investigação, usamos porcentagens apenas como exemplos retrospectivos com a devida interpretação.
+- **Modelo:** `RandomForestClassifier`, com 12 combinações de `n_estimators`, `max_depth` e `min_samples_leaf` em quatro folds cronológicos de desenvolvimento.
+- **Referências:** baseline de frequência global e baseline sazonal mensal.
+- **Calibração:** regressão logística sigmoidal em um ano separado, sem reajustar os parâmetros do Random Forest com o teste final.
+- **Métricas:** Average Precision, Brier Score, ROC-AUC, precision, recall, F1, F1-macro, balanced accuracy, curvas de calibração e matrizes de confusão.
 
-## Observações de replicação
+| Período | Papel | Dias elegíveis |
+|---|---|---:|
+| 2013–2022 | Desenvolvimento e validação temporal | 3.585 |
+| 2023 | Calibração probabilística | 268 |
+| 2024 | Verificação adicional | 354 |
+| 2025 | Teste retrospectivo | 327 |
+| 2026 (parcial) | Avaliação complementar | 231 |
 
-- Dia sem registro oficial **não prova** ausência de alagamento; o classificador aprende detecção administrativa.
-- Falhas horárias do A701 podem excluir dias de análise; cobertura por ano e amostras está em `evidencias/chuva_a701/`.
-- Uma estação é insuficiente para representar chuva espacial em toda a capital.
-- Em 2026, usamos somente datas até 30/09, anteriores à revisão da camada em 06/10; a ausência de ocorrências depois disso **não comprova ausência real**.
-- Os `requirements.txt` fixam versões da execução de referência; versões Colab podem precisar ajuste de ambiente, devendo isso ser documentado.
-- **Não** executar artefatos `.joblib` de fontes não confiáveis. Eles foram gerados na execução deste estudo e servem apenas à reprodução da equipe.
+A seleção de hiperparâmetros usa exclusivamente os dados de 2013–2022. Os anos posteriores são tratados separadamente; os resultados são retrospectivos, não uma validação operacional futura.
 
-## Rubrica e entrega
+## Resultados
 
-PDF FIAP p. 31–33: problema/dados reais 2, escolha modelo 1, preparação e divisão 2, >=10 combinações de 3 hiperparâmetros com CV apenas no treino 2, métricas treino/teste e gráficos/overfitting 2, leitura cidadã 1. **Divergência de extensão:** p.31: 2–4 páginas; p.33: 2 páginas; priorizamos 2 e recomendamos confirmar no Teams.
+A melhor configuração foi `n_estimators=300`, `max_depth=4` e `min_samples_leaf=20`, com **Average Precision média de 0,6141** na validação cruzada.
 
-Não há garantia de nota máxima; a revisão final inclui notebook executado, links públicos válidos, vídeo de até 5 minutos no YouTube (não listado) e submissão até 19/11/2026 às 23h55.
+| Métrica em 2025 | Random Forest calibrado | Baseline mensal |
+|---|---:|---:|
+| Average Precision (maior é melhor) | **0,6233** | 0,5682 |
+| Brier Score (menor é melhor) | 0,1395 | **0,1387** |
+| F1-macro (limiar 0,50) | 0,6705 | **0,7312** |
+| Balanced accuracy | 0,6645 | **0,7323** |
+
+Na matriz de confusão de 2025, o Random Forest calibrado identificou **35 dos 76 dias com registro**, deixando 41 falsos negativos (além de 33 falsos positivos). Em 2026 parcial, obteve AP 0,6912 e Brier 0,1829; essa comparação entre anos não demonstra evolução do modelo.
+
+**Interpretação:** o Random Forest melhora a ordenação dos dias por possibilidade de registro (AP), mas não supera o baseline mensal na qualidade das probabilidades (Brier) nem no F1-macro no teste de 2025. Portanto, suas porcentagens são **saídas experimentais retrospectivas**, não alertas confiáveis para o público.
+
+O estudo completo e suas limitações estão em [RELATORIO_ML.md](RELATORIO_ML.md). Os resultados detalhados estão em [evidencias/chuva_a701/](evidencias/chuva_a701/) e os gráficos em [figuras/chuva_a701/](figuras/chuva_a701/).
+
+## Executar no Google Colab
+
+1. Baixe ou clone este repositório. Copie seu conteúdo para `Meu Drive/ALERTASP_GS_2026/`, preservando a pasta `ml/`.
+2. Confira os arquivos originais nos caminhos a seguir:
+
+   ```text
+   ml/dados/brutos/SIRGAS_GPKG_riscoocorrencia.zip
+   ml/dados/brutos/inmet/A701_MIRANTE/*.CSV  (14 arquivos, 2013–2026)
+   ```
+
+3. Abra [01_ALERTASP_PREVISAO_CHUVA_A701.ipynb](01_ALERTASP_PREVISAO_CHUVA_A701.ipynb) no [Google Colab](https://colab.research.google.com/) e selecione **Ambiente de execução → Executar tudo**. Use CPU e autorize o acesso ao Drive.
+4. O notebook lê as fontes, valida a cobertura, constrói o painel diário, executa o GridSearchCV, calibra as probabilidades e salva métricas, gráficos e evidências nas subpastas `chuva_a701/`.
+5. Confira as saídas do notebook executado e o arquivo `requirements.txt`, que registra as dependências do ambiente utilizado.
+
+O caminho padrão utilizado no Colab é `/content/drive/MyDrive/ALERTASP_GS_2026/ml`. Para executar localmente com Jupyter, configure a variável de ambiente `ALERTASP_BASE_DIR` para a pasta `ml/`. O repositório inclui um notebook com resultados salvos, mas a execução depende dos arquivos e das bibliotecas instaladas.
+
+## Estrutura
+
+```text
+ml/
+├── 01_ALERTASP_PREVISAO_CHUVA_A701.ipynb
+├── README.md
+├── RELATORIO_ML.md
+├── requirements.txt
+├── prompts.md
+├── dados/
+│   ├── README.md
+│   ├── brutos/
+│   └── processados/chuva_a701/
+├── evidencias/chuva_a701/
+└── figuras/chuva_a701/
+```
+
+## Limites e transparência
+
+- Um único pluviômetro não representa todos os bairros da capital.
+- `houve_registro = 0` significa que não consta registro oficial, e não que a rua estava seca.
+- O GeoSampa disponibiliza dados históricos atualizados mensalmente; não é uma fonte de ocorrência em tempo real.
+- As porcentagens não estão validadas para orientar deslocamentos, substituir alertas oficiais ou indicar risco por via.
+- O artefato `.joblib`, se distribuído, é experimental; carregue apenas arquivos cuja origem seja confiável.
+
+**Equipe:** Enzo Almeida (RM556900), Guilherme Moreira (RM557290) e Gabriel De Mello (RM554421).  
+*FIAP · Global Solution 2026.2 · CitizenTech*
