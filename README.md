@@ -1,15 +1,50 @@
-# ALERTASP \| CitizenTech — Global Solution 2026.2
+# ALERTASP
 
-Projeto de Engenharia de Software da FIAP sobre informação pública de alagamentos e inundações em São Paulo.
+**Dados e tecnologia para compreender alagamentos e inundações na cidade de São Paulo.**
 
-**Equipe:** Enzo Almeida (RM556900) · Guilherme Moreira (RM557290) · Gabriel De Mello (RM554421).
+O ALERTASP é uma proposta CitizenTech desenvolvida por estudantes de Engenharia de Software da FIAP. O projeto busca tornar informações sobre ocorrências de alagamento mais acessíveis e compreensíveis para quem vive ou se desloca pela capital paulista.
 
-**Este repositório é a entrega de IA & Machine Learning.** A implementação das demais disciplinas é independente. A interface cidadã do ALERTASP não está conectada a este modelo.
+Nesta implementação, o foco é o estudo de **Inteligência Artificial & Machine Learning**: investigamos se a chuva observada anteriormente na estação São Paulo–Mirante (INMET A701) ajuda a estimar a possibilidade de **haver ao menos um registro de alagamento ou inundação no município no dia seguinte**.
 
-## Onde começar
+## Ficha CitizenTech
 
-Abra [ml/README.md](http://ml/README.md) para objetivo, fontes, execução no Google Colab e métricas. O notebook [**ml/01\_ALERTASP\_PREVISAO\_CHUVA\_A701.ipynb**](http://ml/01_ALERTASP_PREVISAO_CHUVA_A701.ipynb) já inclui uma execução completa com dados reais; o relatório de duas páginas é [**ml/RELATORIO\_ML.md**](http://ml/RELATORIO_ML.md) (PDF complementar na mesma pasta).
+| Elemento | Descrição |
+|---|---|
+| **Território** | Município de São Paulo (SP) |
+| **Cidadãos beneficiados** | Moradores, pedestres e motoristas que precisam compreender as condições de chuva e os registros de alagamentos |
+| **Problema** | Durante chuvas intensas, nem sempre é fácil consultar e interpretar informações localizadas e atualizadas sobre ocorrências de alagamento |
+| **Proposta** | Combinar informações públicas sobre chuva e ocorrências históricas para apoiar análise territorial e comunicação mais clara ao cidadão |
+| **Tecnologias** | Python, Pandas, scikit-learn, Google Colab, GeoSampa e dados históricos do INMET |
+| **Ecossistema de dados** | Prefeitura de São Paulo/Defesa Civil (SIGRC e GeoSampa), INMET; CGE como referência de comunicação oficial |
+| **Como avaliar a contribuição** | Qualidade, cobertura e clareza das informações; no experimento de ML, métricas de classificação, ordenação e calibração. Impacto real sobre cidadãos ainda não foi medido |
+| **ODS relacionados** | 11 — Cidades e Comunidades Sustentáveis; 13 — Ação Climática; 3 — Saúde e Bem-Estar (complementar) |
 
-**Escopo:** estima a chance de ao menos um **registro administrativo** de alagamento ou inundação na **cidade inteira** no próximo dia, a partir de chuva *anterior* medida na estação A701. Não representa probabilidade física por rua nem alerta em tempo real. Os resultados de calibração não justificam uso operacional.
+## O estudo de Machine Learning
 
-**Prazo FIAP:** 19/11/2026 às 23h55 — no Teams, enviar links do GitHub e do vídeo até 5 minutos, publicado como não listado no YouTube.
+A análise utiliza dados públicos reais de **2013 a 2026**: registros administrativos de alagamento e inundação do GeoSampa e medições horárias de precipitação do INMET A701. A unidade de análise é **a cidade inteira em um dia**, não uma rua ou bairro.
+
+O modelo desenvolvido é um **Random Forest**, comparado a referências simples de frequência histórica e sazonalidade. As variáveis incluem chuva dos dias anteriores e época do ano; o modelo não utiliza chuva do dia que pretende estimar.
+
+Em 2025, o modelo calibrado obteve **Average Precision de 0,6233**, acima do baseline mensal (0,5682), mas apresentou **Brier Score de 0,1395**, ligeiramente pior que o baseline (0,1387). Assim, os resultados indicam capacidade de identificar padrões, **não confiabilidade suficiente para divulgar porcentagens como alertas operacionais**.
+
+![Frequência histórica de registros por faixa de chuva no dia anterior](ml/figuras/chuva_a701/faixas_chuva_frequencia.png)
+
+*Frequências observadas em dados históricos, não limites oficiais de chuva nem probabilidades por via.*
+
+## Explore o repositório
+
+- [Notebook executado — análise, treinamento e avaliação](ml/01_ALERTASP_PREVISAO_CHUVA_A701.ipynb)
+- [Metodologia, resultados e execução no Colab](ml/README.md)
+- [Relatório de IA & Machine Learning](ml/RELATORIO_ML.md)
+- [Fontes e dicionário dos dados](ml/dados/README.md)
+- [Gráficos](ml/figuras/chuva_a701/) e [evidências](ml/evidencias/chuva_a701/)
+
+**Limite de uso:** uma estação meteorológica não representa a chuva de cada bairro. A ausência de registro não comprova ausência de alagamento. O estudo **não oferece previsão por rua, rotas seguras ou monitoramento em tempo real** e não substitui os comunicados do CGE e da Defesa Civil.
+
+## Equipe
+
+- Enzo Almeida — RM556900
+- Guilherme Moreira — RM557290
+- Gabriel De Mello — RM554421
+
+*FIAP · Global Solution 2026.2 · CitizenTech*
