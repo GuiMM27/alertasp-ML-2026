@@ -1,0 +1,26 @@
+{
+  "modelo": "RandomForestClassifier",
+  "parametros": {
+    "max_depth": 4,
+    "min_samples_leaf": 20,
+    "n_estimators": 300
+  },
+  "features": [
+    "chuva_d1_mm",
+    "chuva_d3_mm",
+    "chuva_d7_mm",
+    "maior_chuva_hora_d1_mm",
+    "horas_chuvosas_d1",
+    "cobertura_d3",
+    "cobertura_d7",
+    "mes_sin",
+    "mes_cos"
+  ],
+  "anos_desenvolvimento": "2013-2022",
+  "ano_calibracao": 2023,
+  "ano_verificacao": 2024,
+  "ano_teste": 2025,
+  "2026_parcial": true,
+  "limiar_classificacao": 0.5,
+  "alvo": "ao menos um registro SIGRC na cidade no dia"
+}
