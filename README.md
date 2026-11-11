@@ -1,7 +1,12 @@
 # ALERTASP
 
 **Dados e tecnologia para compreender alagamentos e inundações na cidade de São Paulo.**
+## Equipe
 
+- Enzo Almeida — RM556900
+- Guilherme Moreira — RM557290
+- Gabriel De Mello — RM554421
+  
 O ALERTASP é uma proposta CitizenTech desenvolvida por estudantes de Engenharia de Software da FIAP. O projeto busca tornar informações sobre ocorrências de alagamento mais acessíveis e compreensíveis para quem vive ou se desloca pela capital paulista.
 
 Nesta implementação, o foco é o estudo de **Inteligência Artificial & Machine Learning**: investigamos se a chuva observada anteriormente na estação São Paulo–Mirante (INMET A701) ajuda a estimar a possibilidade de **haver ao menos um registro de alagamento ou inundação no município no dia seguinte**.
@@ -40,11 +45,5 @@ Em 2025, o modelo calibrado obteve **Average Precision de 0,6233**, acima do bas
 - [Gráficos](ml/figuras/chuva_a701/) e [evidências](ml/evidencias/chuva_a701/)
 
 **Limite de uso:** uma estação meteorológica não representa a chuva de cada bairro. A ausência de registro não comprova ausência de alagamento. O estudo **não oferece previsão por rua, rotas seguras ou monitoramento em tempo real** e não substitui os comunicados do CGE e da Defesa Civil.
-
-## Equipe
-
-- Enzo Almeida — RM556900
-- Guilherme Moreira — RM557290
-- Gabriel De Mello — RM554421
 
 *FIAP · Global Solution 2026.2 · CitizenTech*
